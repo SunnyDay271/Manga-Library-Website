@@ -1,100 +1,56 @@
-const rankingData = [
-  {
-    title: "One Piece",
-    author: "Eiichiro Oda",
-    image: "https://cdn.myanimelist.net/images/manga/2/253146.jpg",
-    views: "345K",
-  },
-  {
-    title: "Kagurabachi",
-    author: "Takeru Hokazono",
-    image: "https://cdn.myanimelist.net/images/manga/1/304273.jpg",
-    views: "293K",
-  },
-  {
-    title: "Dandadan",
-    author: "Yukinobu Tatsu",
-    image: "https://cdn.myanimelist.net/images/manga/3/249993.jpg",
-    views: "180K",
-  },
-  {
-    title: "Blue Box",
-    author: "Kouji Miura",
-    image: "https://cdn.myanimelist.net/images/manga/2/237227.jpg",
-    views: "122K",
-  },
-]
+import { useContext } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { MangaContext } from "../context/MangaContext"
+import { proxyImage } from "../api/mangaApi"
 
 function RankingSidebar() {
+  const { mangaList } = useContext(MangaContext)
+  const navigate = useNavigate()
+
+  const top5 = [...mangaList]
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 5)
+
   return (
     <aside className="w-full lg:w-[320px]">
-
       <div className="sticky top-24">
-
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6">
-
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
-
-            <h2 className="text-2xl font-bold">
-              Hottest
-            </h2>
-
-            <button className="text-[#ff4d4d] text-sm">
+            <h2 className="text-2xl font-bold">Hottest</h2>
+            <Link to="/ranking" className="text-[#ff4d4d] text-sm hover:underline">
               View All
-            </button>
-
+            </Link>
           </div>
 
-          {/* Ranking List */}
           <div className="space-y-5">
-
-            {rankingData.map((manga, index) => (
-
+            {top5.map((manga, index) => (
               <div
-                key={index}
+                key={manga.id}
+                onClick={() => navigate(`/manga/${manga.id}`)}
                 className="flex gap-4 items-center group cursor-pointer"
               >
-
-                {/* Rank */}
                 <span className="text-2xl font-bold text-gray-500 w-6">
                   {index + 1}
                 </span>
-
-                {/* Image */}
                 <img
-                  src={manga.image}
-                  alt=""
+                  src={proxyImage(manga.image)}
+                  alt={manga.title}
                   className="w-16 h-20 object-cover rounded-xl"
                 />
-
-                {/* Info */}
                 <div className="flex-1">
-
-                  <h3 className="font-semibold group-hover:text-[#ff4d4d] transition">
+                  <h3 className="font-semibold group-hover:text-[#ff4d4d] transition line-clamp-1">
                     {manga.title}
                   </h3>
-
-                  <p className="text-sm text-gray-400">
-                    {manga.author}
-                  </p>
-
+                  <p className="text-sm text-gray-400">{manga.author}</p>
                   <p className="text-sm mt-1 text-gray-300">
-                    {manga.views} views
+                    {(manga.views / 1000).toFixed(0)}K views
                   </p>
-
                 </div>
-
               </div>
-
             ))}
-
           </div>
-
         </div>
-
       </div>
-
     </aside>
   )
 }

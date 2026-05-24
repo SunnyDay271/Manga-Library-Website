@@ -1,43 +1,31 @@
 import { Link } from "react-router-dom"
+import { useState } from "react"
+import { proxyImage } from "../api/mangaApi"
 
 function MangaCard({ manga }) {
+  const [imgError, setImgError] = useState(false)
+
   return (
-
     <Link to={`/manga/${manga.id}`}>
-
       <div className="group cursor-pointer">
-
-        <div className="relative overflow-hidden rounded-2xl">
-
-          {/* Cover */}
+        <div className="relative overflow-hidden rounded-2xl bg-white/5">
           <img
-            src={manga.image}
-            alt=""
+            src={imgError ? "/fallback.jpg" : proxyImage(manga.image)}
+            alt={manga.title}
+            onError={() => setImgError(true)}
             className="w-full aspect-[3/4] object-cover group-hover:scale-105 transition duration-300"
           />
-
-          {/* Tag */}
           <span className="absolute top-3 left-3 bg-[#ff4d4d] text-xs px-3 py-1 rounded-lg font-semibold">
-            Latest
+            Ch.{manga.chapter}
           </span>
-
         </div>
-
-        {/* Info */}
         <div className="mt-3">
-
-          <h2 className="font-bold text-lg">
+          <h2 className="font-bold text-base leading-tight line-clamp-2">
             {manga.title}
           </h2>
-
-          <p className="text-gray-400 text-sm">
-            Chapter #{manga.chapter}
-          </p>
-
+          <p className="text-gray-400 text-sm mt-1">{manga.author}</p>
         </div>
-
       </div>
-
     </Link>
   )
 }

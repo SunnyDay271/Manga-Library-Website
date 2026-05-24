@@ -1,109 +1,63 @@
+import { useContext } from "react"
+import { Link, useLocation } from "react-router-dom"
 import MangaCard from "./MangaCard"
-import { useLocation } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { getManga } from "../api/mangaApi"
+import { MangaContext } from "../context/MangaContext"
 
 function MangaGrid({ selectedGenre = "All" }) {
-
+  const { mangaList, mangaLoading } = useContext(MangaContext)
   const location = useLocation()
 
-  const [mangaData, setMangaData] =
-    useState([])
+  const queryParams = new URLSearchParams(location.search)
+  const search = queryParams.get("search")?.toLowerCase() || ""
 
-  useEffect(() => {
+  const filtered = mangaList
+    .filter((manga) => manga.title.toLowerCase().includes(search))
+    .filter((manga) =>
+      selectedGenre === "All" || manga.genres?.includes(selectedGenre)
+    )
+    .slice(0, 8)
 
-    const fetchManga = async () => {
-
-      const data = await getManga()
-
-      console.log("API DATA:", data)
-
-      setMangaData(data)
-
-    }
-
-    fetchManga()
-
-  }, [])
-
-  // Get Search Query
-  const queryParams =
-    new URLSearchParams(location.search)
-
-  const search =
-    queryParams.get("search")?.toLowerCase() || ""
-
-  // Filter Manga
-  const filteredManga = mangaData.filter((manga) => {
-
-    // Search Match
-    const matchesSearch =
-      manga.title
-        .toLowerCase()
-        .includes(search)
-
-    // Genre Match
-    const matchesGenre =
-      selectedGenre === "All" ||
-      manga.genres.includes(selectedGenre)
-
-    return matchesSearch && matchesGenre
-
-  })
+  if (mangaLoading) {
+    return (
+      <section>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold">Trending Manga</h1>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="aspect-[3/4] bg-white/5 rounded-2xl animate-pulse"
+            />
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   return (
-
     <section>
-
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
-
-        <h1 className="text-3xl font-bold">
-          Trending Manga
-        </h1>
-
-        <button className="text-[#ff4d4d]">
+        <h1 className="text-3xl font-bold">Trending Manga</h1>
+        <Link to="/manga-list" className="text-[#ff4d4d] hover:underline text-sm">
           View All
-        </button>
-
+        </Link>
       </div>
 
-      {/* Empty State */}
-      {filteredManga.length === 0 ? (
-
+      {filtered.length === 0 ? (
         <div className="bg-white/5 border border-white/10 rounded-3xl p-10 text-center">
-
-          <h2 className="text-2xl font-bold">
-            No Manga Found
-          </h2>
-
-          <p className="text-gray-400 mt-3">
-            Try searching another title.
-          </p>
-
+          <h2 className="text-2xl font-bold">No Manga Found</h2>
+          <p className="text-gray-400 mt-3">Try searching another title.</p>
         </div>
-
       ) : (
-
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-
-          {filteredManga.map((manga) => (
-
-            <MangaCard
-              key={manga.id}
-              manga={manga}
-            />
-
+          {filtered.map((manga) => (
+            <MangaCard key={manga.id} manga={manga} />
           ))}
-
         </div>
-
       )}
-
     </section>
-
   )
-
 }
 
 export default MangaGrid

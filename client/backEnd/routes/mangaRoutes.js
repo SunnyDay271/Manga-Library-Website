@@ -1,41 +1,47 @@
 const express = require("express")
-
 const router = express.Router()
+const db = require("../config/db")
 
-// Dummy Manga Data
-const manga = [
+const parseRow = (row) => ({
+  ...row,
+  genres: row.genres ? row.genres.split(",") : [],
+})
 
-  {
-    id: 1,
-    title: "ONE PIECE LIVE API TEST",
-    image:
-      "https://cdn.myanimelist.net/images/manga/2/253146.jpg",
-    genres: ["Action", "Adventure"],
-  },
-
-  {
-    id: 2,
-    title: "Jujutsu Kaisen",
-    image:
-      "https://cdn.myanimelist.net/images/manga/3/210341.jpg",
-    genres: ["Action", "Supernatural"],
-  },
-
-  {
-    id: 3,
-    title: "Chainsaw Man",
-    image:
-      "https://cdn.myanimelist.net/images/manga/3/216464.jpg",
-    genres: ["Action", "Horror"],
-  },
-
-]
-
-// GET ALL MANGA
+// GET all manga
 router.get("/", (req, res) => {
+  db.query(
+    "SELECT * FROM manga ORDER BY views DESC",
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "Database error" })
+      res.json(results.map(parseRow))
+    }
+  )
+})
 
-  res.json(manga)
+// GET single manga by id
+router.get("/:id", (req, res) => {
+  db.query(
+    "SELECT * FROM manga WHERE id = ?",
+    [req.params.id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "Database error" })
+      if (results.length === 0)
+        return res.status(404).json({ error: "Not found" })
+      res.json(parseRow(results[0]))
+    }
+  )
+})
 
+// GET search manga by title
+router.get("/search/:query", (req, res) => {
+  db.query(
+    "SELECT * FROM manga WHERE title LIKE ? ORDER BY views DESC",
+    [`%${req.params.query}%`],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: "Database error" })
+      res.json(results.map(parseRow))
+    }
+  )
 })
 
 module.exports = router
